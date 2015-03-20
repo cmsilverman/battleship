@@ -2,7 +2,7 @@
 # Use nextMove('optimal')
 
 from Board import Board
-from random import random
+from random import random, shuffle
 from subprocess import call
 
 AIOPTIONS = ['optimal', 'random']
@@ -129,6 +129,7 @@ def generateMeasurement(heuristicArray):
 
 def bestMove(board):
     options = validMoves(board)
+    shuffle(options)
     incorrectGuesses = [(x, y) for x in range(Board.rows) for y in range(Board.cols) if board.board[x][y] == 2]
     if len(incorrectGuesses) >= MIN_INCORRECT:
         goodGuesses = [x*Board.cols + y for x in range(Board.rows) for y in range(Board.cols) if board.board[x][y] == 3]
