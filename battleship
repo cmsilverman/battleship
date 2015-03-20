@@ -1,0 +1,98 @@
+#!/usr/bin/python3.2
+
+from Board import Board
+from ai import nextMove
+
+def hello():
+    print("You've started my Battleship program. You can play a computer!")
+    print('I claim no copyright. If you do not want to play this game, please type "q" or "n".')
+    if input().upper() in ('Q', 'N'): goodbye()
+
+def goodbye():
+    print('Have a good day.')
+    exit(0)
+
+def tempBoard(shipInfos):
+    b = Board()
+    for x in range(len(Board.ships)):
+        if shipInfos[x] is not None:
+            b.addShip(shipInfos[x][0], Board.ships[x], shipInfos[x][1])
+    return b
+
+def generateUserBoard():
+    positions = [None for s in Board.ships]
+    b = Board()
+    print('The (empty) board looks like this:\n')
+    print(b.printFull())
+    print('Your ship lengths are {}'.format(Board.ships))
+    while None in positions:
+        for i in range(len(Board.ships)):
+            getOut = False
+            while(True):
+                ship = Board.ships[i]
+                print('Please decide on which square to place the upper- or left-most piece of the current ship, length {}. ("q" will quit.)'.format(ship))
+                sp = Board.inputSpace()
+                if sp == None:
+                    getOut = True
+                    break
+                print('Please input "1" or "v" if you want the ship to be vertical; otherwise it will be horizontal. ("q" will quit.)')
+                d = 0
+                directionInput = input()
+                if directionInput.upper() == 'q': goodbye()
+                if directionInput.upper() in ('1', 'V'): d = 1
+                if b.shipLegal(sp, ship, d):
+                    positions[i] = (sp, d)
+                    b = tempBoard(positions)
+                    print('The board now looks like this:')
+                    print(b.printFull())
+                    break
+                print('That ship placement is illegal. Please try again.')
+            if getOut: break
+        if None in positions:
+            print('Do you want to try placing ships again? If not, type "n" or "q".')
+            if input().upper() in ('Q', 'N'): goodbye()
+            positions = [None for s in Board.ships]
+            b = Board()
+            print('Board cleared.')
+        else:
+            return b
+
+def playGame():
+    while True:
+        userBoard = generateUserBoard()
+        aiBoard = Board.generateRandomBoard()
+        while not userBoard.gameOver():
+            print("AI'S BOARD:")
+            print(aiBoard.printPartial())
+            print("YOUR BOARD:")
+            print(userBoard.printFull())
+            print("Your move:")
+            while True:
+                userMove = Board.inputSpace()
+                if userMove is None: goodbye()
+                if aiBoard.hit(userMove):
+                    print("You've already attacked that space! Try again.")
+                else:
+                    aiBoard.takeHit(userMove)
+                    if aiBoard.board[userMove[0]][userMove[1]] == 3:
+                        print("Hit!")
+                    else:
+                        print("Miss!")
+                    break
+            if aiBoard.gameOver():
+                print('You win!')
+                break
+            aiMove = nextMove(userBoard,'optimal')
+            userBoard.takeHit(aiMove)
+            print('The AI attacks {}'.format(Board.formatMove(aiMove)))
+            if userBoard.gameOver():
+                print('You lose!')
+        print('Do you want to play again? If not, type "n" or "q".')
+        if input().upper() in ('Q', 'N'): goodbye()
+
+def main():
+    hello()
+    print('First, we need to generate your board!')
+    playGame()
+
+if __name__ == '__main__': main()
